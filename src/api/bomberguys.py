@@ -54,7 +54,7 @@ class IBomberGuy:
         """
 
 class PytactXBomberGuy(IBomberGuy):
-    def __init__(self, playerID, arena, server, port, username, verbosity, password):
+    def __init__(self, playerID, arena, server, username, verbosity, password, port:int = 443):
         super().__init__()
         self.__agent = pytactx.Agent(
             playerId    =   playerID,

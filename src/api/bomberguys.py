@@ -1,5 +1,16 @@
 from typing import Any
 import j2l.pytactx.agent as pytactx
+from enum import Enum
+
+class Tile(Enum):
+    
+    empty = 0
+    bomb = 1
+    ironBlock = 2
+    stoneBlock = 3
+    alliedPlayer = 4
+    ennemyPlayer = 5
+    explosion = 6
 
 class IBomberGuy:
 
@@ -11,22 +22,10 @@ class IBomberGuy:
         self.profile : int = 0
         self.x : int = 0
         self.y : int = 0
-        self.color : tuple[int,int,int] = (0,255,0)
-        self.score : int = 0
-        self.rank : int = 0
-        self.game : dict[str,Any] = {}
-        self.players : list[str] = []
-        self.robots : list[str] = []
-        self.map : tuple[tuple[int]] = []
+        self.map : tuple[tuple[Tile]] = []
         self.gridColumns : int = 10
         self.gridRows : int = 10
         self.bombCooldown : int = 0
-
-    def connect(self) -> bool :
-        """
-        Connect the client to the broker.
-        Should be called once just after the __init__
-        """
     
     def update(self) -> None :
         """
@@ -54,4 +53,15 @@ class IBomberGuy:
         The request will be send the next update() call
         """
 
-    
+class PytactXBomberGuy(IBomberGuy):
+    def __init__(self, playerID, arena, server, port, username, verbosity, password):
+        super().__init__()
+        self.__agent = pytactx.Agent(
+            playerId    =   playerID,
+            server      =   server,
+            arena       =   arena,
+            username    =   username,
+            password    =   password,
+            port        =   port,
+            verbosity   =   verbosity
+        )

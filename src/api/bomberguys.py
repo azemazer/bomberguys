@@ -11,31 +11,13 @@ class IBomberGuy:
         self.profile : int = 0
         self.x : int = 0
         self.y : int = 0
-        self.dir : int = 0
-        self.pose : tuple[int,int,int] = (0,0,0)
-        self.dtCreated : int = 0
-        self.life : int = 100
-        self.ammo : int = 10
-        self.isFiring : bool = False
-        self.distance : int = 0
         self.color : tuple[int,int,int] = (0,255,0)
-        self.infoPlayer = ""
-        self.range : dict[str,Any] = {}
         self.score : int = 0
         self.rank : int = 0
-        self.nFire : int = 0
-        self.nHitFire : int = 0
-        self.nCollision : int = 0
-        self.nMove : int = 0
-        self.nDeath : int = 0
-        self.nKill : int = 0
-        self.nExe : int = 0
         self.game : dict[str,Any] = {}
         self.players : list[str] = []
         self.robots : list[str] = []
         self.map : tuple[tuple[int]] = []
-        self.infoArena = ""
-        self.isGamePaused : bool = False
         self.gridColumns : int = 10
         self.gridRows : int = 10
         self.bombCooldown : int = 0
@@ -68,7 +50,7 @@ class IBomberGuy:
 
     def dropBomb() -> None:
         """
-        Drops a bomb with 5s countdown.
+        Drops a bomb with a 5s countdown.
         The request will be send the next update() call
         """
 

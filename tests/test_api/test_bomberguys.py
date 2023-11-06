@@ -31,7 +31,8 @@ def createAgent():
 def test_has_connected():
     agent = createAgent()
     agent.update()
-    assert(agent.map != [])
+
+    assert(agent.getTile(agent.getX(), agent.getY()) != [])
     
 # def test_update():
 #     # agent = createAgent()
@@ -40,18 +41,26 @@ def test_has_connected():
 def test_move():
     agent = createAgent()
     agent.update()
-    x = agent.x
-    y = agent.y
+    x = agent.getX()
+    y = agent.getY()
     agent.move(1, 0)
     agent.update()
     assert(
-        x != agent.x and
-        y == agent.y and
-        x == agent.x - 1
+        x != agent.getX() and
+        y == agent.getY() and
+        x == agent.getX() - 1
     )
 
 def test_setColor():
     agent = createAgent()
+    oldColor = agent.getColor()
+    if oldColor != [100, 100, 100]:
+        agent.setColor(100, 100, 100)
+    else:
+        agent.setColor(255, 255, 255)
+    agent.update()
+    newColor = agent.getColor()
+    assert (oldColor != newColor)
     ...
 
 def test_dropBomb():
@@ -59,4 +68,5 @@ def test_dropBomb():
     agent.update()
     agent.dropBomb()
     agent.update()
-    assert (agent.map[agent.x[agent.y]])
+
+    assert (agent.getTile(agent.getX(),agent.getY()) != [])

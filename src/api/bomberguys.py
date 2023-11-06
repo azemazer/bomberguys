@@ -14,18 +14,52 @@ class Tile(Enum):
 
 class IBomberGuy:
 
-    def __init__(self):
-        self.clientId : str = ""
-        self.playerId : str = ""
-        self.robotId : str = ""
-        self.team : int = 0
-        self.profile : int = 0
-        self.x : int = 0
-        self.y : int = 0
-        self.map : tuple[tuple[Tile]] = []
-        self.gridColumns : int = 10
-        self.gridRows : int = 10
-        self.bombCooldown : int = 0
+    # GETTERS 
+
+    def getTile(self, x: int, y:int) -> list[int]:
+        """
+        Gets the tile located at a given location.
+        Returns a list of items positionned at said location.
+        empty = 0
+        bomb = 1
+        ironBlock = 2
+        stoneBlock = 3
+        alliedPlayer = 4
+        ennemyPlayer = 5
+        explosion = 6
+        """
+        ...
+
+    def getTeam(self) -> int:
+        """
+        Gets the team of the agent.
+        """
+        ...
+    def getX(self) -> int:
+        """
+        Gets the X location of the agent.
+        """
+        ...
+    def getY(self) -> int:
+        """
+        Gets the X location of the agent.
+        """
+        ...    
+    def getColor(self) -> tuple:
+        """
+        Gets the color of the agent.
+        """
+        ...    
+    def getBombCooldown(self) -> int:
+        """
+        Gets the bomb cooldown of the agent. It lasts 5 seconds
+        and starts as soon as the agent drops a bomb.
+        If the bomb is on cooldown, the agent cannot
+        drop a bomb.
+        """
+        ...
+
+        # METHODS
     
     def update(self) -> None :
         """
@@ -47,7 +81,7 @@ class IBomberGuy:
         The request will be send the next update() call
         """
 
-    def dropBomb() -> None:
+    def dropBomb(self) -> None:
         """
         Drops a bomb with a 5s countdown.
         The request will be send the next update() call
@@ -55,7 +89,6 @@ class IBomberGuy:
 
 class PytactXBomberGuy(IBomberGuy):
     def __init__(self, playerID, arena, server, username, verbosity, password, port:int = 443):
-        super().__init__()
         self.__agent = pytactx.Agent(
             playerId    =   playerID,
             server      =   server,
@@ -65,3 +98,35 @@ class PytactXBomberGuy(IBomberGuy):
             port        =   port,
             verbosity   =   verbosity
         )
+        self.__bombCooldown = 0
+
+    # GETTERS 
+
+    def getTile(self, x: int, y:int) -> list[int]:
+        if "map" not in self.__agent.game:
+            return []
+        if x not in self.__agent.game["map"]:
+            return []
+        if y not in self.__agent.game["map"][x]:
+            return []
+        return self.__agent.game["map"][x][y]
+    
+    def getMap(self) -> list[list[int]]:
+        if "map" not in self.__agent.game:
+            return []
+        return self.__agent.game["map"]
+
+    def getTeam(self) -> int:
+        return self.__agent.team
+
+    def getX(self) -> int:
+        return self.__agent.x
+
+    def getY(self) -> int:
+        return self.__agent.y
+    
+    def getColor(self) -> tuple:
+        return self.__agent.color
+    
+    def getBombCooldown(self) -> int:
+        return self.__bombCooldown 

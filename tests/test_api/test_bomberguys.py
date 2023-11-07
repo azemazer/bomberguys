@@ -14,6 +14,10 @@ sys.path.append(__srcDir__)
 from dotenv import load_dotenv
 load_dotenv()
 AGENT_PASSWORD = os.getenv('__AGENT_PASSWORD__')
+SERVER = os.getenv('__SERVER__')
+PORT = os.getenv('__PORT__')
+USERNAME = os.getenv('__USERNAME__')
+ARENA = os.getenv('__ARENA__')
 from typing import Any
 from src.api.bomberguys import *
 import src.api.j2l
@@ -22,42 +26,51 @@ import pytest
 
 def createAgent():
     agent = PytactXBomberGuy(
-        playerID='Alexandre',
-        arena='bomberguys',
-        username="demo",
+        playerID='test',
+        arena=ARENA,
+        username=USERNAME,
         password=AGENT_PASSWORD,
-        server="mqtt.jusdeliens.com",
+        server=SERVER,
+        port=int(PORT),
         verbosity=3
     )
     return agent
 
-def test_has_connected():
-    agent = createAgent()
-    agent.update()
+agent = createAgent()
+agent.setColor(200, 200, 200)
+agent.update()
 
+def test_has_connected():
+    global agent
+    agent.update()
     assert(agent.getTile(agent.getX(), agent.getY()) != [])
     
 # def test_update():
-#     # agent = createAgent()
+#     # global agent
 #     # agent.update()
 
 def test_move():
-    agent = createAgent()
+    global agent
     agent.update()
     x = agent.getX()
     y = agent.getY()
-    agent.move(1, 0)
+    print(x, 'old x')
+    print(y, 'old y')
+    agent.move(-1, 1)
     agent.update()
+    print(agent.getX(), 'new x')
+    print(agent.getY(), 'new y')
+
     assert(
         x != agent.getX() and
-        y == agent.getY() and
-        x == agent.getX() - 1
+        y != agent.getY() and
+        x == agent.getX() + 1
     )
 
 def test_setColor():
-    agent = createAgent()
+    global agent
     oldColor = agent.getColor()
-    if oldColor != [100, 100, 100]:
+    if oldColor != (100, 100, 100):
         agent.setColor(100, 100, 100)
     else:
         agent.setColor(255, 255, 255)
@@ -67,9 +80,14 @@ def test_setColor():
     ...
 
 def test_dropBomb():
-    agent = createAgent()
+    global agent    
     agent.update()
     agent.dropBomb()
     agent.update()
 
     assert (agent.getTile(agent.getX(),agent.getY()) != [])
+
+# test_has_connected()
+# test_move()
+# test_setColor()
+# test_dropBomb()

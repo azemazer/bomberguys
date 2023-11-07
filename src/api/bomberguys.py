@@ -1,6 +1,7 @@
 from typing import Any
 import j2l.pytactx.agent as pytactx
 from enum import Enum
+import time
 
 class Tile(Enum):
     
@@ -88,7 +89,7 @@ class IBomberGuy:
         """
 
 class PytactXBomberGuy(IBomberGuy):
-    def __init__(self, playerID, arena, server, username, verbosity, password, port:int = 443):
+    def __init__(self, playerID, arena, server, username, verbosity, password, port):
         self.__agent = pytactx.Agent(
             playerId    =   playerID,
             server      =   server,
@@ -99,17 +100,21 @@ class PytactXBomberGuy(IBomberGuy):
             verbosity   =   verbosity
         )
         self.__bombCooldown = 0
+        while len(self.__agent.map) == 0:
+            self.__agent.lookAt((self.__agent.dir)%4)
+            self.__agent.update()
+    
 
     # GETTERS 
 
     def getTile(self, x: int, y:int) -> list[int]:
         if "map" not in self.__agent.game:
             return []
-        if x not in self.__agent.game["map"]:
+        if y >= len(self.__agent.game["map"]):
             return []
-        if y not in self.__agent.game["map"][x]:
+        if x >= len(self.__agent.game["map"][y]):
             return []
-        return self.__agent.game["map"][x][y]
+        return self.__agent.game["map"][y][x]
     
     def getMap(self) -> list[list[int]]:
         if "map" not in self.__agent.game:
@@ -130,3 +135,21 @@ class PytactXBomberGuy(IBomberGuy):
     
     def getBombCooldown(self) -> int:
         return self.__bombCooldown 
+    
+    # METHODS
+
+    def update(self) -> None:
+        self.__agent.update()
+        time.sleep(0.3)
+
+    def move(self, dx: int, dy: int) -> None:
+        return self.__agent.move(dx, dy)
+
+    def setColor(self, r:int, v:int, b:int) -> None:
+        return self.__agent.setColor(r, v, b)
+    
+    def dropBomb(self) -> None:
+        return self.__agent.fire(True)
+    
+    def printInfos(self) -> None:
+        return print(self.__agent.game)

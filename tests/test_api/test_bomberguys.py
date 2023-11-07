@@ -11,6 +11,9 @@ sys.path.append(__libdir__)
 __srcDir__ = os.path.join(__libdir__ , 'src', 'api')
 sys.path.append(__srcDir__)
 
+from dotenv import load_dotenv
+load_dotenv()
+AGENT_PASSWORD = os.getenv('__AGENT_PASSWORD__')
 from typing import Any
 from src.api.bomberguys import *
 import src.api.j2l
@@ -22,7 +25,7 @@ def createAgent():
         playerID='Alexandre',
         arena='bomberguys',
         username="demo",
-        password="",
+        password=AGENT_PASSWORD,
         server="mqtt.jusdeliens.com",
         verbosity=3
     )

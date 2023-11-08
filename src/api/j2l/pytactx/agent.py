@@ -46,6 +46,8 @@ class IAgentFr:
         self.dtCreation : int = 0
         self.x : int = 0
         self.y : int = 0
+        self.vx : float = 0.0
+        self.vy : float = 0.0
         self.orientation : int = 0
         self.pose : tuple[int,int,int] = (0,0,0)
         self.vie : int = 100
@@ -66,7 +68,7 @@ class IAgentFr:
         self.jeu : dict[str,Any] = {}
         self.agents : list[str] = []
         self.robots : list[str] = []
-        self.carte : tuple[tuple[int]] = []
+        self.carte : tuple[tuple[int]] = ()
         self.infoArene = ""
         self.jeuEnPause : bool = False
         self.tailleGrilleColonnes : int = 10
@@ -103,6 +105,12 @@ class IAgentFr:
         """
         Demander d'appuyer sur la gachette pour tirer en gachette (gachette=True)
         ou bien de relacher la gachette (gachette=False)
+        La requete sera envoyee au prochain actualiser()
+        """
+        ...
+    def accelerer(self,ax:float,ay:float) -> None:
+        """
+        Ajouter une force d'acceleration sur l'agent.
         La requete sera envoyee au prochain actualiser()
         """
         ...
@@ -164,6 +172,8 @@ class IAgent:
         self.profile : int = 0
         self.x : int = 0
         self.y : int = 0
+        self.vx : float = 0.0
+        self.vy : float = 0.0
         self.dir : int = 0
         self.pose : tuple[int,int,int] = (0,0,0)
         self.dtCreated : int = 0
@@ -223,6 +233,12 @@ class IAgent:
     def fire(self,enable:bool=True, firepath:Callable[[int],int] or None=None) -> None:
         """
         Request a trigger pull lock (enable=True) or a fire hold (enable=False)
+        The request will be send the next update() call
+        """
+        ...
+    def accelerate(self,ax:float,ay:float) -> None:
+        """
+        Add an acceleration force to be applied on the agent.
         The request will be send the next update() call
         """
         ...
@@ -378,7 +394,7 @@ def fetchSources(dirpath=None):
     return srcs
 
 class Agent(IAgent):
-    def __init__(self,playerId:str or None=None, arena:str or None=None, username:str or None=None, password:str or None=None, server:str or None=None, port:int=1883, imgOutputPath:str or None="img.jpeg", autoconnect:bool=True, useProxy:bool=True, verbosity:int=3, robotId:str or None="_", welcomePrint:bool=True, sourcesdir:str or None=None):
+    def __init__(self,playerId:str or None=None, arena:str or None=None, username:str or None=None, password:str or None=None, server:str or None=None, port:int=1883, imgOutputPath:str or None="img.jpeg", autoconnect:bool=True, waitArenaConnection:bool=True, verbosity:int=3, robotId:str or None="_", welcomePrint:bool=True, sourcesdir:str or None=None):
         while ( playerId == None or len(playerId) > 32 or len(playerId) == 0 ):
             playerId=input("👾 id (< 12 characters): ")
         while ( server == None or len(server) == 0 ):
@@ -415,6 +431,8 @@ class Agent(IAgent):
             "dtCreated": ("dtCreated", None),
             "x": ("x", Agent._onXChanged),
             "y": ("y", Agent._onYChanged),
+            "vx": ("vx", None),
+            "vy": ("vy", None),
             "dir": ("dir", Agent._onDirChanged),
             "ammo": ("ammo", Agent._onAmmoChanged),
             "life": ("life", Agent._onLifeChanged),
@@ -445,11 +463,19 @@ class Agent(IAgent):
         self.__onAttributeChangeCallbacks : dict[str, Callable[[Agent,str,Any,Any], None]]= {}
         for attribute in self.__playerKeyToAttribute.values():
             self.__onAttributeChangeCallbacks[attribute[0]] = []
-        self.robot : rbx.IRobot = rbx.OvaClientMqtt(robotId,arena,username,password,server,port,imgOutputPath,autoconnect,useProxy,verbosity,playerId,False)
+        self.robot : rbx.IRobot = rbx.OvaClientMqtt(robotId,arena,username,password,server,port,imgOutputPath,autoconnect,True,verbosity,playerId,False)
         self.robot.addEventListener(rbx.RobotEvent.updated, self._onUpdated)
         self.robot.addEventListener(rbx.RobotEvent.robotConnected, self._onRobotConnected)
         self.robot.addEventListener(rbx.RobotEvent.playerChanged, self._onPlayerChanged)
         self.robot.addEventListener(rbx.RobotEvent.arenaChanged, self._onArenaChanged)
+        if ( waitArenaConnection ):
+            print("⌛🌐 ", end="")
+            while self.isConnectedToArena() == False or len(self.game) == 0:
+                self.lookAt((self.dir+1)%4)
+                self.update()
+                time.sleep(1)
+                print(".", end=".")
+            print(" ✅")
 
     def connect(self) -> bool :
         return self.robot.connect()
@@ -469,6 +495,17 @@ class Agent(IAgent):
         self.__firepath = firepath
         self.__playerReqBuf['fire'] = enable
         
+    def accelerate(self,ax:float,ay:float) -> None:
+        if ( type(ax) is not float or type(ay) is not float ):
+            anx.warning("⚠️ move ax,ay values must be float !")
+            return
+        if ( 'ax' not in self.__playerReqBuf ):
+            self.__playerReqBuf['ax'] = 0.0
+        if ( 'ay' not in self.__playerReqBuf ):
+            self.__playerReqBuf['ay'] = 0.0
+        self.__playerReqBuf['ax'] += ax
+        self.__playerReqBuf['ay'] += ay
+
     def move(self,dx:int,dy:int) -> None:
         if ( type(dx) is not int or type(dy) is not int ):
             anx.warning("⚠️ move dx,dy values must be integer !")
@@ -748,7 +785,7 @@ class AgentFr(IAgentFr):
         super().__init__()
         self.__mapEnToFr = {
             "clientId":"idClient", "playerId":"idJoueur", "robotId":"idRobot", "team":"equipe", "profile":"profile", 
-            "dtCreated":"dtCreation", "x":"x", "y":"y", "dir":"orientation", "pose":"pose",
+            "dtCreated":"dtCreation", "x":"x", "y":"y", "vx":"vx", "vy":"vy", "dir":"orientation", "pose":"pose",
             "life":"vie", "ammo":"munitions", "distance":"distance",
             "color":"couleur", "infoPlayer":"infoJoueur", "range":"voisins",
             "score":"score", "rank":"classement",
@@ -773,6 +810,8 @@ class AgentFr(IAgentFr):
                 self.__dict__[frAttribute] = self.__agent.__dict__[enAttribute]
     def tirer(self, gachette:bool=True, trajectoire:Callable[[int],int] or None=None) -> None:
         self.__agent.fire(gachette, trajectoire)
+    def accelerer(self,ax:float,ay:float) -> None:
+        self.__agent.accelerate(ax,ay)
     def deplacer(self,dx:int,dy:int) -> None:
         self.__agent.move(dx,dy)
     def deplacerVers(self,x:int,y:int) -> None:

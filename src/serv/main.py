@@ -25,13 +25,18 @@ while ( len(arbitre.game) == 0 ):
     arbitre.update()
 
 def initArena():
+    """
+    Funcion that executes at launch. Modifies the rules
+    to implement bomb rules, 
+    then spawns 6 agents 
+    """
     arbitre.ruleArena("reset", True)
     arbitre.update()
 
     bombRuleset = {
         "profiles" : "bomb",
         "pIcons" : "💣",
-        "pImgs" : "bomb.svg",
+        "pImgs" : "bomb.svg", 
         "range" : 0,
         "dtDir" : 100,
         "dtMove" : 100,
@@ -41,12 +46,12 @@ def initArena():
         "hitCollision" : 0,
         "dxMax" : 0,
         "dyMax" : 0,
-        "lifeIni" : 100,
+        "lifeIni" : 100, # Is used for the bomb countdown.
         "ammoIni" : 100,
         "invisible" : False,
         "invincible" : False,
         "infiniteAmmo" : False,
-        "collision" : False,
+        "collision" : False, # You can step over bombs.
                    }
     
     for ruleKey, ruleValue in bombRuleset.items():
@@ -87,7 +92,12 @@ def initArena():
         #     "x": 13,
         #     "y": 7
         # },
+
     }
+
+    # Regular spawn of iron block
+
+    # Random(?) spawn of Stone Block
 
     for agentId, attributes in agents.items():
         for attributeKey, attributeValue in attributes.items():
@@ -124,3 +134,27 @@ while True:
     arbitre.lookAt((arbitre.dir+1)%4)
     arbitre.update()
     arbitre.ruleArena("info", "testest")
+
+    # If any Agent starts shooting,
+    # He drops a bomb
+
+    # If an Agent is a Bomb
+    # He automatically loses life
+
+    # If a Bomb dies,
+    # Nearby tiles and Bomb tile are Explosion (for 1 second)
+    
+    # If an agent is on an explosion,
+    # He dies
+
+    # If a stone block is on an explosion,
+    # It disappears
+
+    # If an agent attempts to move on a iron or stone block,
+    # He is stopped (map friction)
+    
+    # If a team has no agent alive,
+    # The other team wins
+    
+    # If a team wins,
+    # The game is paused  

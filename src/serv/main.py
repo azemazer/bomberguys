@@ -1,6 +1,7 @@
 import j2l.pytactx.agent as pytactx
 import os
 import time
+import copy
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -20,17 +21,61 @@ arbitre = pytactx.Agent(playerId=ARBITRE_USERNAME,
                       port = int(PORT),
                     )
 
-while ( len(arbitre.game) == 0 ):
-    arbitre.lookAt((arbitre.dir+1)%4)
-    arbitre.update()
+oldRange = {}
+newRange = {}
+
+# while ( len(arbitre.game) == 0 ):
+#     arbitre.lookAt((arbitre.dir+1)%4)
+#     arbitre.update()
+
+def bombExplode(x: int, y: int) -> None:
+    
+    # If an agent is on an explosion,
+    # He dies
+
+    # If a stone block is on an explosion,
+    # It disappears
+
+    explosionZone = [(x,y), (x-1,y), (x+1,y), (x,y-1), (x,y+1)]
+    map = copy.deepcopy(arbitre.map)
+    for tile in explosionZone:
+        mapX, mapY = tile[0], tile[1]
+        if  map[mapY][mapX] == 1:
+            map[mapY][mapX] = 0
+    arbitre.ruleArena("map", map)
+    for player, playerStats in arbitre.range.items():
+        for tile in explosionZone:
+            if (playerStats["x"] == tile[0]) and (playerStats["y"] == tile[1]):
+                arbitre.rulePlayer(player, "life", 0)
+    
 
 def initArena():
     """
-    Funcion that executes at launch. Modifies the rules
+    Function that executes at launch. Modifies the rules
     to implement bomb rules, 
     then spawns 6 agents 
     """
+
+    #  Spawns random stoneblocks
+    arbitre.ruleArena("mapImgs", [
+                        "",
+                        "stoneblock.jpg",
+    ])
+
+    arbitre.ruleArena("mapFriction", [
+                        0.0,
+                        1.0
+    ])
+
+    arbitre.ruleArena("mapRand", True)
+
+    arbitre.ruleArena("mapRandFreq", 0.4)
+
+
     arbitre.ruleArena("reset", True)
+    arbitre.update()
+
+    time.sleep(5)
     arbitre.update()
 
     bombRuleset = {
@@ -46,12 +91,13 @@ def initArena():
         "hitCollision" : 0,
         "dxMax" : 0,
         "dyMax" : 0,
-        "lifeIni" : 100, # Is used for the bomb countdown.
-        "ammoIni" : 100,
+        "lifeIni" : 10, # Is used for the bomb countdown.
+        "ammoIni" : 0,
         "invisible" : False,
         "invincible" : False,
         "infiniteAmmo" : False,
-        "collision" : False, # You can step over bombs.
+        "collision" : True, # You can step over bombs.
+        "nRespawn" : 1
                    }
     
     for ruleKey, ruleValue in bombRuleset.items():
@@ -59,18 +105,59 @@ def initArena():
         ruleActualValues[1] = ruleValue
         arbitre.ruleArena(ruleKey, ruleActualValues)
 
+    dtFires = arbitre.game["dtFire"]
+    infiniteAmmos = arbitre.game["infiniteAmmo"]
+    dtFires[0] = 5000 # Bomb cooldown for default players
+    infiniteAmmos[0] = False
+    arbitre.ruleArena("dtFire", dtFires)
+    arbitre.ruleArena("infiniteAmmos", infiniteAmmos)
+
+    # Regular spawn of iron block
+    # Positions of iron blocks (tuple of (x, y))
+
+    arbitre.ruleArena("mapImgs", [
+                        "",
+                        "stoneblock.jpg",
+                        "ironblock.jpg",
+                        "hit.jpg"
+    ])
+
+    arbitre.ruleArena("mapFriction", [
+                        0.0,
+                        1.0,
+                        1.0,
+                        0.0
+    ])
+
+    arbitre.ruleArena("mapRand", False)
+
+    arbitre.ruleArena("mapRandFreq", 0.0)
+
+    ironBlockPosX = (1, 3, 5, 7, 9, 11, 13)
+    ironBlockPosY = (1, 3, 5, 7, 9)
+    ironBlockPos = []
+    for xPos in ironBlockPosX:
+        for yPos in ironBlockPosY:
+            ironBlockPos.append((xPos, yPos))
+
+    map = copy.deepcopy(arbitre.game["map"])
+    for pos in ironBlockPos:
+        mapX, mapY = pos[0], pos [1] 
+        map[mapY][mapX] = 2
+
+    arbitre.ruleArena("map", map)
     arbitre.update()
 
     agents =  {
         "joueur1": {
             "team": "0",
-            "x": 3,
-            "y": 3
+            "x": 2,
+            "y": 2
         },
         "joueur2": {
             "team": "0",
-            "x": 3,
-            "y": 5
+            "x": 2,
+            "y": 4
         },
         # "joueur3": {
         #     "team": "0",
@@ -79,13 +166,13 @@ def initArena():
         # },
         "joueur4": {
             "team": "1",
-            "x": 13,
-            "y": 3
+            "x": 12,
+            "y": 2
         },
         "joueur5": {
             "team": "1",
-            "x": 13,
-            "y": 5
+            "x": 12,
+            "y": 4
         },
         # "joueur6": {
         #     "team": "1",
@@ -93,38 +180,13 @@ def initArena():
         #     "y": 7
         # },
 
+
     }
-
-    # Regular spawn of iron block
-
-    # Random(?) spawn of Stone Block
 
     for agentId, attributes in agents.items():
         for attributeKey, attributeValue in attributes.items():
             arbitre.rulePlayer(agentId, attributeKey, attributeValue)
     arbitre.update()
-
-    exit()
-
-    # "profiles" : { "?fr":"Liste des profiles de agents avec stats différentes", "ini":["default", "attaquant", "defenseur", "arbitre", "ball"], "publish":true },
-    # "pIcons" : { "?fr":"Icone de chaque profiles de agents", "ini":["", "⚔️", "🛡️", "👀", ""], "publish":true },
-    # "pImgs" : { "?fr":"Url des images de chaque profiles de agents. Chaine vide => dessin cercle", "ini":["ova.svg", "ova.svg", "ova.svg", "ova.svg", "ball.svg"], "publish":true },
-    # "pPnj" : { "?fr":"Classe d'ia pour request auto. IA possibles '':desactiver ia, 'Idle':inoffensive, 'StaticTurret:tourne sur soi-même et tir, 'RandomMovingTurret':déplacement aléatoire et tir, 'SearchNDestroyBehaviour': agents dans metal gear solid 1", "ini":["","","","","Idle","SearchNDestroy"], "publish":false },
-    # "range" : { "?fr":"Rayon de visibilite. En nb de cases. 0 pour tout voir.", "ini":[10,10,10,0,0], "min":0, "max":10, "publish":true },
-    # "dtDir" : { "?fr":"Délai entre 2 changements d'orientation (en msecs)", "ini":[300,300,450,10,10], "min":0, "max":10000, "publish":true },
-    # "dtMove" : { "?fr":"Délai entre 2 déplacements (en msecs)", "ini":[300,300,450,10,10], "min":0, "max":10000, "publish":true },
-    # "dtFire" : { "?fr":"Délai entre 2 tirs (en msecs)", "ini":[300,300,300,0,0], "min":0, "max":10000, "publish":true },
-    # "fxFire" : { "?fr":"Si oui ou non fonction tir possible", "ini":[true,true,true,true,false], "publish":true },
-    # "hitFire" : { "?fr":"Dégats infligés par tir", "ini":[10,15,10,100,0], "min":0, "max":100, "publish":true },
-    # "hitCollision" : { "?fr":"Dégats infligés par collision", "ini":[10,15,10,0,0], "min":0, "max":100, "publish":true },
-    # "dxMax" : { "?fr":"Déplacement max autorisé en x", "ini":[1,1,1,100,1], "min":0, "max":10, "publish":true },
-    # "dyMax" : { "?fr":"Déplacement max autorisé en y", "ini":[1,1,1,1,1,100,1], "min":0, "max":10, "publish":true },
-    # "lifeIni" : { "?fr":"Nombre vie par agent", "ini":[100,75,150,0,0], "min":0, "max":100, "publish":true },
-    # "ammoIni" : { "?fr":"Nombre munitions par agent", "ini":[100,100,100,0,0], "min":0, "max":100, "publish":true },
-    # "invisible": { "?fr":"Si oui ou non invisible", "ini":[false,false,false,true,false], "publish":true },
-    # "invincible": { "?fr":"Si oui ou non invincible", "ini":[false,false,false,true,true], "publish":true },
-    # "infiniteAmmo": { "?fr":"Si oui ou non munitions infinies", "ini":[false,false,false,true,false], "publish":true },
-    # "collision" : { "?fr":"Si oui ou non collision possible avec autres agents", "ini":[true,true,true,false,true], "publish":true }
 
 initArena()
 
@@ -132,26 +194,41 @@ initArena()
 while True:
     # Changement d'orientation de l'arbitre pour montrer qu'il est actif dans l'arène
     arbitre.lookAt((arbitre.dir+1)%4)
+    # arbitre.ruleArena("info", "testest")
+    newRange = copy.deepcopy(arbitre.range)
+
+    if oldRange != newRange:
+
+        for player, playerStats in newRange.items():
+            ...
+
+            # If any Agent starts shooting,
+            # He drops a bomb
+            if player in oldRange and oldRange[player]["nFire"] < playerStats["nFire"]:
+                bombName = player + "b"
+                if (bombName in newRange and newRange[bombName]["life"] <= 0) or (bombName not in newRange):
+                    arbitre.rulePlayer(bombName, "profile", 1)
+                    arbitre.rulePlayer(bombName, "x", playerStats["x"])
+                    arbitre.rulePlayer(bombName, "y", playerStats["y"])
+                    arbitre.rulePlayer(bombName, "life", 10)
+            if playerStats["profile"] == 1:
+                bombLife = playerStats["life"]
+                # If a Bomb dies,
+                # Nearby tiles and Bomb tile are Explosion (for 1 second)
+                if bombLife >= 1:
+                    bombLife -= 1
+                    if bombLife == 0:
+                        bombExplode(playerStats["x"], playerStats["y"])
+
+                    # # If an Agent is a Bomb
+                    # # He automatically loses life
+                    arbitre.rulePlayer(playerStats["clientId"], "life", bombLife)
+        
+
+    oldRange = newRange
     arbitre.update()
-    arbitre.ruleArena("info", "testest")
+    time.sleep(0.3)
 
-    # If any Agent starts shooting,
-    # He drops a bomb
-
-    # If an Agent is a Bomb
-    # He automatically loses life
-
-    # If a Bomb dies,
-    # Nearby tiles and Bomb tile are Explosion (for 1 second)
-    
-    # If an agent is on an explosion,
-    # He dies
-
-    # If a stone block is on an explosion,
-    # It disappears
-
-    # If an agent attempts to move on a iron or stone block,
-    # He is stopped (map friction)
     
     # If a team has no agent alive,
     # The other team wins

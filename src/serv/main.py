@@ -40,7 +40,7 @@ def bombExplode(x: int, y: int) -> None:
     map = copy.deepcopy(arbitre.map)
     for tile in explosionZone:
         mapX, mapY = tile[0], tile[1]
-        if  map[mapY][mapX] == 1:
+        if  mapY in range(len(map)) and mapX in range(len(map[mapY])) and map[mapY][mapX] == 1:
             map[mapY][mapX] = 0
     arbitre.ruleArena("map", map)
     for player, playerStats in arbitre.range.items():
@@ -107,10 +107,16 @@ def initArena():
 
     dtFires = arbitre.game["dtFire"]
     infiniteAmmos = arbitre.game["infiniteAmmo"]
+    nRespawns = arbitre.game["nRespawn"]
+    # weaponss = arbitre.game["weapons"]
     dtFires[0] = 5000 # Bomb cooldown for default players
-    infiniteAmmos[0] = False
+    infiniteAmmos[0] = False # Players don't have limited ammo so we can listen to their number of shoots
+    nRespawns[0] = 1 # Players respawn only once
+    # weaponss[0] = 0 # Players don't really "shoot"
     arbitre.ruleArena("dtFire", dtFires)
-    arbitre.ruleArena("infiniteAmmos", infiniteAmmos)
+    arbitre.ruleArena("infiniteAmmo", infiniteAmmos)
+    arbitre.ruleArena("nRespawn", nRespawns)
+    # arbitre.ruleArena("weapons", weaponss)
 
     # Regular spawn of iron block
     # Positions of iron blocks (tuple of (x, y))
@@ -139,6 +145,8 @@ def initArena():
     for xPos in ironBlockPosX:
         for yPos in ironBlockPosY:
             ironBlockPos.append((xPos, yPos))
+
+    print("yep we go through this")
 
     map = copy.deepcopy(arbitre.game["map"])
     for pos in ironBlockPos:
@@ -199,8 +207,18 @@ while True:
 
     if oldRange != newRange:
 
+        # Team points counters
+        team0IsAlive = False
+        team1IsAlive = False
+
         for player, playerStats in newRange.items():
-            ...
+
+            # If an agent die,
+            # The other team wins a point
+            if playerStats["team"] == 0:
+                team0IsAlive = True
+            if playerStats["team"] == 1:
+                team1IsAlive = True
 
             # If any Agent starts shooting,
             # He drops a bomb
@@ -224,14 +242,21 @@ while True:
                     # # He automatically loses life
                     arbitre.rulePlayer(playerStats["clientId"], "life", bombLife)
         
+        infoScores = ""
+        if team0IsAlive and team1IsAlive:
+            infoScores = "Game: ongoing"
+        elif not team0IsAlive and not team1IsAlive:
+            infoScores = "GAME RESULT: DRAW!"
+        elif team0IsAlive and not team1IsAlive:
+            infoScores = "GAME RESULT: TEAM 1 WON!"
+        elif not team0IsAlive and team1IsAlive:
+            infoScores = "GAME RESULT: TEAM 2 WON!"
+        arbitre.ruleArena("info", infoScores)
+        
 
     oldRange = newRange
     arbitre.update()
     time.sleep(0.3)
-
-    
-    # If a team has no agent alive,
-    # The other team wins
     
     # If a team wins,
     # The game is paused  

@@ -105,6 +105,9 @@ def initArena():
         ruleActualValues[1] = ruleValue
         arbitre.ruleArena(ruleKey, ruleActualValues)
 
+    time.sleep(0.3)
+    arbitre.update()
+
     dtFires = arbitre.game["dtFire"]
     infiniteAmmos = arbitre.game["infiniteAmmo"]
     nRespawns = arbitre.game["nRespawn"]
@@ -139,6 +142,9 @@ def initArena():
 
     arbitre.ruleArena("mapRandFreq", 0.0)
 
+    time.sleep(0.3)
+    arbitre.update()
+
     ironBlockPosX = (1, 3, 5, 7, 9, 11, 13)
     ironBlockPosY = (1, 3, 5, 7, 9)
     ironBlockPos = []
@@ -154,6 +160,7 @@ def initArena():
         map[mapY][mapX] = 2
 
     arbitre.ruleArena("map", map)
+    time.sleep(0.3)
     arbitre.update()
 
     agents =  {
@@ -194,6 +201,7 @@ def initArena():
     for agentId, attributes in agents.items():
         for attributeKey, attributeValue in attributes.items():
             arbitre.rulePlayer(agentId, attributeKey, attributeValue)
+    time.sleep(0.3)
     arbitre.update()
 
 initArena()

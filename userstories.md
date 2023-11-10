@@ -1,23 +1,31 @@
 # PytactX no Bomberman: User Stories
-## En tant qu'utilisateur, je souhaite pouvoir...
-- Apparaître dans l'arène (de manière aléatoire dans une zone définie) à chaque début de partie
-    * pour pouvoir jouer au jeu
-- Me déplacer en haut, en bas, à gauche et à droite si j'y suis autorisé
-    * pour pouvoir me déplacer
-- Poser un agent de type bombe (Munitions infinies, posable une fois toutes les 5 secondes, explose en 5 secondes; l'explosion dure 1 seconde)
-    * pour pouvoir tuer les ennemis
-- Mourir lorsqu'on est dans une zone d'explosion
-    * pour coller aux règles du jeu
-- Gagner ou perdre selon qu'on est dans la dernière équipe survivante ou pas, et faire redémarrer la partie
-    * pour qu'il y ait un objectif et un moyen de gagner ou perdre le jeu
-- Détecter si un agent est de type bombe ou pas
-    * pour pouvoir agir en conséquence
-- Déterminer combien de temps il reste à une bombe pour exploser
-    * pour pouvoir reculer si c'est sur le point d'exploser
-- Déterminer si un agent robot est allié ou non
-    * pour ne pas tuer mes alliés
-- Avoir une range qui englobe tout le champ de bataille
-    * pour pouvoir prévoir une stratégie
-- Avoir à ma disposition un système de pathfinding
-    * pour pouvoir faire du "Aller à" (position absolue) qui ne prends pas en compte 
+ ## As a user, I can... (TO BE IMPLEMENTED)
+- Appear in the arena (in a fixed zone) at each game start
+    * to be able to play the game
+      --> DONE, but with fixed spawns
+- Be able to move up, left, right and down
+    * to move
+      --> DONE, but can still move diagonally for now
+- Drop a bomb type agent (Infinite ammo, drop only one bomb at a time, explodes at the end)
+    * to kill ennemies
+      --> DONE (server side)
+- Die when in zone explosion
+    * as the rules suggest
+      --> DONE (server side)
+- Win or lose if we're in the last team standing or not, and restart the game
+    *to introduce an objective as well as a way to win the game
+- Detect if an agent is of type bomb
+    * to be able to act in consequence
+      --> DONE (server side)
+- As an agent to detect the time left for a bomb to explode
+    * to step back if it's gonna blow
+      --> DONE (server side)
+- Detect friendly / foe agents
+    * to avoid friendly fire
+      --> DONE
+- Have a range as big as the whole battlefield 
+    * to make good strategies
+- Use pathfinding
+    * so I can "go to" a given position
+      --> This feature is going to be for users to implement themeselves
 

@@ -138,6 +138,10 @@ class Referee:
 
         self.__agent.ruleArena("mapRandFreq", 0.0)
 
+        self.__agent.ruleArena("teamColor", [[0, 255, 255], [255, 0, 255]])
+
+        self.__agent.ruleArena("teamName", ["Cyan", "Purple"])
+
     def spawnIronBlocks(self):
 
         ironBlockPosX = (1, 3, 5, 7, 9, 11, 13)
@@ -157,32 +161,32 @@ class Referee:
     def spawnPlayers(self):
         agents =  {
             "joueur1": {
-                "team": "0",
+                "team": 0,
                 "x": 2,
                 "y": 2
             },
             "joueur2": {
-                "team": "0",
+                "team": 0,
                 "x": 2,
                 "y": 4
             },
             # "joueur3": {
-            #     "team": "0",
+            #     "team": 0,
             #     "x": 3,
             #     "y": 7
             # },
             "joueur4": {
-                "team": "1",
+                "team": 1,
                 "x": 12,
                 "y": 2
             },
             "joueur5": {
-                "team": "1",
+                "team": 1,
                 "x": 12,
                 "y": 4
             },
             # "joueur6": {
-            #     "team": "1",
+            #     "team": 1,
             #     "x": 13,
             #     "y": 7
             # }
@@ -237,13 +241,14 @@ class Referee:
             self.initArena()
 
     def startRoutine(self):
-        self.checkIfVictory()
         self.__agent.lookAt((self.__agent.dir+1)%4)
         self.__newRange = copy.deepcopy(self.__agent.range)
 
     def endRoutine(self):
+        self.checkIfVictory()
         self.__oldRange = self.__newRange
         self.sleepAndUpdate()
+
 
     def teamPointsCounter(self, playerStats):
         if playerStats["team"] == 0:
@@ -254,7 +259,7 @@ class Referee:
     def bombDrops(self, player, playerStats):
          if player in self.__oldRange and self.__oldRange[player]["nFire"] < playerStats["nFire"]:
             bombName = player + "b"
-            if (bombName in self.__newRange and self.__newRange[bombName]["life"] <= 0) or (bombName not in self.__agent):
+            if (bombName in self.__newRange and self.__newRange[bombName]["life"] <= 0) or (bombName not in self.__newRange):
                 self.__agent.rulePlayer(bombName, "profile", 1)
                 self.__agent.rulePlayer(bombName, "x", playerStats["x"])
                 self.__agent.rulePlayer(bombName, "y", playerStats["y"])
@@ -326,3 +331,5 @@ referee =  Referee(playerId=ARBITRE_USERNAME,
                       server=SERVER,
                       port = int(PORT),
                     )
+
+referee.routine()

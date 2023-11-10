@@ -152,8 +152,6 @@ def initArena():
         for yPos in ironBlockPosY:
             ironBlockPos.append((xPos, yPos))
 
-    print("yep we go through this")
-
     map = copy.deepcopy(arbitre.game["map"])
     for pos in ironBlockPos:
         mapX, mapY = pos[0], pos [1] 
